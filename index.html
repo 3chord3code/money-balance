@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>残高確認アプリ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #fff;
+            padding-top: 40px;
+            box-sizing: border-box;
+        }
+        .container {
+            text-align: center;
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+
+            width: 350px;
+        }
+        h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+        .balance-label {
+            font-size: 1em;
+            color: #666;
+            margin-top: 10px;
+            margin-bottom: 30px;
+        }
+        .balance {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        .input-group:last-child {
+            margin-bottom: 0;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+        .display-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .display-value {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .edit-button {
+            flex-shrink: 0;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #7f8c8d;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .edit-button:hover {
+            background-color: #95a5a6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>生活費残高</h1>
+        <div id="balance" class="balance"></div>
+        <div id="countdown" class="balance-label"></div>
+
+        <div class="input-group">
+            <label>1ヵ月ごとの入金額</label>
+            <div class="display-container">
+                <span id="deposit-display" class="display-value"></span>
+                <button id="edit-deposit-button" class="edit-button">設定</button>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label>前月からの繰り越し金額</label>
+            <div class="display-container">
+                <span id="carryover-display" class="display-value"></span>
+                <button id="edit-carryover-button" class="edit-button">設定</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>使った金額の合計</label>
+            <div class="display-container">
+                <span id="spent-display" class="display-value"></span>
+                <button id="edit-spent-button" class="edit-button">設定</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>家賃</label>
+            <div class="display-container">
+                <span id="rent-display" class="display-value"></span>
+                <button id="edit-rent-button" class="edit-button">設定</button>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <label>クレジットカード引き落とし金額</label>
+            <div class="display-container">
+                <span id="credit-card-display" class="display-value"></span>
+                <button id="edit-credit-card-button" class="edit-button">設定</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Elements ---
+        const balanceElement = document.getElementById('balance');
+        const countdownElement = document.getElementById('countdown');
+        const UIElements = {
+            deposit: { display: document.getElementById('deposit-display'), button: document.getElementById('edit-deposit-button') },
+            carryover: { display: document.getElementById('carryover-display'), button: document.getElementById('edit-carryover-button') },
+            spent: { display: document.getElementById('spent-display'), button: document.getElementById('edit-spent-button') },
+            rent: { display: document.getElementById('rent-display'), button: document.getElementById('edit-rent-button') },
+            credit: { display: document.getElementById('credit-card-display'), button: document.getElementById('edit-credit-card-button') },
+        };
+
+        // --- Storage Keys ---
+        const STORAGE_PREFIX = 'moneyBalanceApp_';
+        const STORAGE_KEYS = {
+            deposit: `${STORAGE_PREFIX}deposit_v2`,
+            carryover: `${STORAGE_PREFIX}carryover_v2`,
+            spent: `${STORAGE_PREFIX}spent_v2`,
+            rent: `${STORAGE_PREFIX}rent_v2`,
+            credit: `${STORAGE_PREFIX}credit_v2`,
+        };
+
+        const formatter = new Intl.NumberFormat('ja-JP');
+
+        // --- State ---
+        let state = {
+            deposit: null,
+            carryover: 0,
+            spent: 0,
+            rent: null,
+            credit: 0,
+        };
+
+        // --- Functions ---
+        function updateBalanceDisplay() {
+            const { deposit, carryover, spent, rent, credit } = state;
+            const income = (carryover || 0) + (deposit || 0);
+            const outcome = (spent || 0) + (rent || 0) + (credit || 0);
+            const currentBalance = income - outcome;
+            balanceElement.textContent = formatter.format(currentBalance) + ' 円';
+        }
+
+        function updateAllDisplays() {
+            for (const key in UIElements) {
+                const value = state[key];
+                const displayEl = UIElements[key].display;
+                if (value === null) {
+                    displayEl.textContent = '設定してください';
+                    displayEl.style.color = '#999';
+                } else {
+                    displayEl.textContent = formatter.format(value) + ' 円';
+                    displayEl.style.color = 'inherit';
+                }
+            }
+        }
+        
+        function saveData() {
+            for (const key in state) {
+                localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(state[key]));
+            }
+        }
+        
+        function loadData() {
+            for (const key in state) {
+                const savedValue = localStorage.getItem(STORAGE_KEYS[key]);
+                if (savedValue !== null) {
+                    state[key] = JSON.parse(savedValue);
+                }
+            }
+        }
+
+        function createEditHandler(stateKey, promptMessage) {
+            return () => {
+                const currentValue = state[stateKey] !== null ? state[stateKey] : '';
+                const newValueString = prompt(promptMessage, currentValue);
+                
+                if (newValueString === null) return; // Cancelled
+
+                if (stateKey !== 'rent' && newValueString.trim() === '') {
+                     alert('金額を入力してください。');
+                     return;
+                }
+
+                if (newValueString.trim() === '') { // Allow unsetting rent
+                    state[stateKey] = null;
+                } else {
+                    const newValue = parseInt(newValueString.replace(/,/g, ''), 10);
+                    if (!isNaN(newValue) && newValue >= 0) {
+                        state[stateKey] = newValue;
+                    } else {
+                        alert('有効な数値を入力してください。');
+                        return;
+                    }
+                }
+                
+                updateAllDisplays();
+                updateBalanceDisplay();
+                saveData();
+            };
+        }
+        
+        function updateCountdown() {
+            const today = new Date();
+            let next25 = new Date(today.getFullYear(), today.getMonth(), 25);
+            if (today.getDate() >= 25) {
+                next25.setMonth(next25.getMonth() + 1);
+            }
+            const diffTime = next25 - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            countdownElement.textContent = diffDays > 0 ? `次の入金日（25日）まであと ${diffDays} 日` : `今日は入金日です！`;
+        }
+
+        // --- Event Listeners ---
+        UIElements.deposit.button.addEventListener('click', createEditHandler('deposit', '1ヵ月ごとの入金額を入力してください。'));
+        UIElements.carryover.button.addEventListener('click', createEditHandler('carryover', '前月からの繰り越し金額を入力してください。'));
+        UIElements.spent.button.addEventListener('click', createEditHandler('spent', '使った金額の合計を入力してください。'));
+        UIElements.rent.button.addEventListener('click', createEditHandler('rent', '家賃を入力してください。（空欄で未設定）'));
+        UIElements.credit.button.addEventListener('click', createEditHandler('credit', 'クレジットカード引き落とし金額を入力してください。'));
+
+        // --- Initialization ---
+        function initialize() {
+            loadData();
+            updateAllDisplays();
+            updateBalanceDisplay();
+            updateCountdown();
+        }
+
+        initialize();
+    </script>
+
+</body>
+</html>
