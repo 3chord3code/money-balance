@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>残高確認アプリ</title>
+    <title>生活費残高</title>
+    <link rel="manifest" href="manifest.json">
     <style>
         body {
             font-family: sans-serif;
@@ -80,6 +81,19 @@
         .edit-button:hover {
             background-color: #95a5a6;
         }
+
+        #install-button {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 0.5em 1em;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            z-index: 100;
+        }
+
     </style>
 </head>
 <body>
@@ -130,6 +144,8 @@
         </div>
 
     </div>
+
+    <button id="install-button" hidden>アプリをインストール</button>
 
     <script>
         // --- Elements ---
@@ -259,6 +275,41 @@
         }
 
         initialize();
+
+        // --- PWA Install Logic ---
+        let deferredPrompt;
+        const installButton = document.getElementById('install-button');
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can install the PWA
+            installButton.hidden = false;
+            console.log('`beforeinstallprompt` event was fired.');
+        });
+
+        installButton.addEventListener('click', async () => {
+            // Hide the app provided install promotion
+            installButton.hidden = true;
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // We've used the prompt, and can't use it again, throw it away
+            deferredPrompt = null;
+        });
+
+        window.addEventListener('appinstalled', (evt) => {
+            // Log install to analytics
+            console.log('INSTALL: Success');
+        });
     </script>
 
 </body>
