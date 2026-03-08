@@ -5,96 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>生活費残高</title>
     <link rel="manifest" href="manifest.json">
-    <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            margin: 0;
-            background-color: #fff;
-            padding-top: 40px;
-            box-sizing: border-box;
-        }
-        .container {
-            text-align: center;
-            background-color: white;
-            padding: 40px;
-            border-radius: 10px;
-
-            width: 350px;
-        }
-        h1 {
-            color: #333;
-            font-size: 2em;
-            margin-bottom: 5px;
-        }
-        .balance-label {
-            font-size: 1em;
-            color: #666;
-            margin-top: 10px;
-            margin-bottom: 30px;
-        }
-        .balance {
-            font-size: 3em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        .input-group:last-child {
-            margin-bottom: 0;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-            font-size: 0.9em;
-        }
-        .display-container {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f9f9f9;
-        }
-        .display-value {
-            font-size: 1.2em;
-            font-weight: bold;
-        }
-        .edit-button {
-            flex-shrink: 0;
-            padding: 5px 15px;
-            border: none;
-            border-radius: 5px;
-            background-color: #7f8c8d;
-            color: white;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .edit-button:hover {
-            background-color: #95a5a6;
-        }
-
-        #install-button {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 0.5em 1em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-            cursor: pointer;
-            z-index: 100;
-        }
-
-    </style>
+    <link rel="apple-touch-icon" href="icon.svg">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -102,6 +14,7 @@
         <h1>生活費残高</h1>
         <div id="balance" class="balance"></div>
         <div id="countdown" class="balance-label"></div>
+        <div id="daily-amount" class="balance-label" style="margin-top: -15px; font-weight: bold;"></div>
 
         <div class="input-group">
             <label>1ヵ月ごとの入金額</label>
@@ -147,170 +60,15 @@
 
     <button id="install-button" hidden>アプリをインストール</button>
 
-    <script>
-        // --- Elements ---
-        const balanceElement = document.getElementById('balance');
-        const countdownElement = document.getElementById('countdown');
-        const UIElements = {
-            deposit: { display: document.getElementById('deposit-display'), button: document.getElementById('edit-deposit-button') },
-            carryover: { display: document.getElementById('carryover-display'), button: document.getElementById('edit-carryover-button') },
-            spent: { display: document.getElementById('spent-display'), button: document.getElementById('edit-spent-button') },
-            rent: { display: document.getElementById('rent-display'), button: document.getElementById('edit-rent-button') },
-            credit: { display: document.getElementById('credit-card-display'), button: document.getElementById('edit-credit-card-button') },
-        };
+    <div id="ios-install-banner">
+        <span id="close-ios-banner">&times;</span>
+        <p>
+            このアプリをホーム画面に追加してご利用ください。<br>
+            Safariの共有ボタン <img src="data:image/svg+xml,%3Csvg version='1.1' id='_x32_' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 512 512' style='height: 1.2em; vertical-align: middle; fill: %23777;' xml:space='preserve'%3E%3Cg%3E%3Cpath d='M368.303,208.762c-1.896-1.725-4.524-2.508-7.143-2.293l-13.78,1.135c-5.461-17.43-14.733-33.153-27.132-46.21 c-13.43-14.156-30.773-22.99-49.883-25.045V31.547c0-2.324-1.89-4.214-4.214-4.214h-28.53c-2.324,0-4.214,1.89-4.214,4.214 v104.831c-19.097,2.055-36.439,10.89-49.868,25.032c-12.399,13.057-21.671,28.78-27.132,46.21l-13.78-1.135 c-2.619-0.215-5.247,0.569-7.143,2.293c-2.353,2.15-3.328,5.321-2.529,8.255l14.286,52.887c0.649,2.397,2.63,4.09,5.058,4.35 l15.207,1.644v198.24c0,2.324,1.89,4.214,4.214,4.214h128.87c2.324,0,4.214-1.89,4.214-4.214v-198.24l15.207-1.644 c2.428-0.26,4.409-1.953,5.058-4.35l14.286-52.887C371.63,214.083,370.655,210.912,368.303,208.762z M251.786,41.979h8.429v85.252 c-11.233,1.449-21.849,5.845-31.06,12.784l-6.848-11.861C230.724,115.421,240.231,90.493,251.786,41.979z M221.234,136.01 c-8.72-6.57-16.711-13.99-23.774-21.992l7.157-12.4c12.32,14.654,32.123,32.32,54.811,37.388V241.1h-42.143V141.22L221.234,136.01z M279.357,241.1V141.206c22.688-5.068,42.491-22.734,54.811-37.388l7.157,12.4c-7.063,7.994-15.054,15.422-23.774,21.992 l-4.149,5.211V241.1H279.357z M353.571,263.38l-14.781,1.599c-2.324,0-4.214,1.89-4.214,4.214v198.24h-42.143V269.193h-84.286 v198.24H179.37c-2.324,0-4.214-1.89-4.214-4.214V264.98c0-2.324-1.89-4.214-4.214-4.214l-14.781-1.599l-12.012-44.481 h100.86l28.53,0.014h100.83L353.571,263.38z'%3E%3C/path%3E%3C/g%3E%3C/svg%3E" alt="共有アイコン"> から「ホーム画面に追加」を選んでください。
+        </p>
+    </div>
 
-        // --- Storage Keys ---
-        const STORAGE_PREFIX = 'moneyBalanceApp_';
-        const STORAGE_KEYS = {
-            deposit: `${STORAGE_PREFIX}deposit_v2`,
-            carryover: `${STORAGE_PREFIX}carryover_v2`,
-            spent: `${STORAGE_PREFIX}spent_v2`,
-            rent: `${STORAGE_PREFIX}rent_v2`,
-            credit: `${STORAGE_PREFIX}credit_v2`,
-        };
-
-        const formatter = new Intl.NumberFormat('ja-JP');
-
-        // --- State ---
-        let state = {
-            deposit: null,
-            carryover: 0,
-            spent: 0,
-            rent: null,
-            credit: 0,
-        };
-
-        // --- Functions ---
-        function updateBalanceDisplay() {
-            const { deposit, carryover, spent, rent, credit } = state;
-            const income = (carryover || 0) + (deposit || 0);
-            const outcome = (spent || 0) + (rent || 0) + (credit || 0);
-            const currentBalance = income - outcome;
-            balanceElement.textContent = formatter.format(currentBalance) + ' 円';
-        }
-
-        function updateAllDisplays() {
-            for (const key in UIElements) {
-                const value = state[key];
-                const displayEl = UIElements[key].display;
-                if (value === null) {
-                    displayEl.textContent = '設定してください';
-                    displayEl.style.color = '#999';
-                } else {
-                    displayEl.textContent = formatter.format(value) + ' 円';
-                    displayEl.style.color = 'inherit';
-                }
-            }
-        }
-        
-        function saveData() {
-            for (const key in state) {
-                localStorage.setItem(STORAGE_KEYS[key], JSON.stringify(state[key]));
-            }
-        }
-        
-        function loadData() {
-            for (const key in state) {
-                const savedValue = localStorage.getItem(STORAGE_KEYS[key]);
-                if (savedValue !== null) {
-                    state[key] = JSON.parse(savedValue);
-                }
-            }
-        }
-
-        function createEditHandler(stateKey, promptMessage) {
-            return () => {
-                const currentValue = state[stateKey] !== null ? state[stateKey] : '';
-                const newValueString = prompt(promptMessage, currentValue);
-                
-                if (newValueString === null) return; // Cancelled
-
-                if (stateKey !== 'rent' && newValueString.trim() === '') {
-                     alert('金額を入力してください。');
-                     return;
-                }
-
-                if (newValueString.trim() === '') { // Allow unsetting rent
-                    state[stateKey] = null;
-                } else {
-                    const newValue = parseInt(newValueString.replace(/,/g, ''), 10);
-                    if (!isNaN(newValue) && newValue >= 0) {
-                        state[stateKey] = newValue;
-                    } else {
-                        alert('有効な数値を入力してください。');
-                        return;
-                    }
-                }
-                
-                updateAllDisplays();
-                updateBalanceDisplay();
-                saveData();
-            };
-        }
-        
-        function updateCountdown() {
-            const today = new Date();
-            let next25 = new Date(today.getFullYear(), today.getMonth(), 25);
-            if (today.getDate() >= 25) {
-                next25.setMonth(next25.getMonth() + 1);
-            }
-            const diffTime = next25 - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            countdownElement.textContent = diffDays > 0 ? `次の入金日（25日）まであと ${diffDays} 日` : `今日は入金日です！`;
-        }
-
-        // --- Event Listeners ---
-        UIElements.deposit.button.addEventListener('click', createEditHandler('deposit', '1ヵ月ごとの入金額を入力してください。'));
-        UIElements.carryover.button.addEventListener('click', createEditHandler('carryover', '前月からの繰り越し金額を入力してください。'));
-        UIElements.spent.button.addEventListener('click', createEditHandler('spent', '使った金額の合計を入力してください。'));
-        UIElements.rent.button.addEventListener('click', createEditHandler('rent', '家賃を入力してください。（空欄で未設定）'));
-        UIElements.credit.button.addEventListener('click', createEditHandler('credit', 'クレジットカード引き落とし金額を入力してください。'));
-
-        // --- Initialization ---
-        function initialize() {
-            loadData();
-            updateAllDisplays();
-            updateBalanceDisplay();
-            updateCountdown();
-        }
-
-        initialize();
-
-        // --- PWA Install Logic ---
-        let deferredPrompt;
-        const installButton = document.getElementById('install-button');
-
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent the mini-infobar from appearing on mobile
-            e.preventDefault();
-            // Stash the event so it can be triggered later.
-            deferredPrompt = e;
-            // Update UI to notify the user they can install the PWA
-            installButton.hidden = false;
-            console.log('`beforeinstallprompt` event was fired.');
-        });
-
-        installButton.addEventListener('click', async () => {
-            // Hide the app provided install promotion
-            installButton.hidden = true;
-            // Show the install prompt
-            deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
-            const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            // We've used the prompt, and can't use it again, throw it away
-            deferredPrompt = null;
-        });
-
-        window.addEventListener('appinstalled', (evt) => {
-            // Log install to analytics
-            console.log('INSTALL: Success');
-        });
-    </script>
+    <script src="script.js" defer></script>
 
 </body>
 </html>

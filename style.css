@@ -1,0 +1,122 @@
+body {
+    font-family: sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #fff;
+    padding-top: 40px;
+    box-sizing: border-box;
+    /* Add padding-bottom to avoid banner overlap */
+    padding-bottom: 80px; 
+}
+.container {
+    text-align: center;
+    background-color: white;
+    padding: 40px;
+    border-radius: 10px;
+
+    width: 350px;
+}
+h1 {
+    color: #333;
+    font-size: 2em;
+    margin-bottom: 5px;
+}
+.balance-label {
+    font-size: 1em;
+    color: #666;
+    margin-top: 10px;
+    margin-bottom: 30px;
+}
+.balance {
+    font-size: 3em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+.input-group:last-child {
+    margin-bottom: 0;
+}
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-size: 0.9em;
+}
+.display-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+.display-value {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+.edit-button {
+    flex-shrink: 0;
+    padding: 5px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #7f8c8d;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+.edit-button:hover {
+    background-color: #95a5a6;
+}
+
+#install-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    padding: 0.5em 1em;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    z-index: 100;
+}
+
+/* CSS for iOS install banner */
+#ios-install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #f8f8f8;
+    padding: 15px;
+    text-align: center;
+    font-size: 0.9em;
+    border-top: 1px solid #ddd;
+    z-index: 200;
+    display: none; /* Initially hidden */
+}
+#ios-install-banner p {
+    margin: 0;
+    line-height: 1.4;
+}
+#ios-install-banner img {
+    height: 1.2em;
+    vertical-align: middle;
+    margin: 0 4px;
+}
+#close-ios-banner {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    font-size: 1.5em;
+    color: #aaa;
+    cursor: pointer;
+    line-height: 1;
+}
