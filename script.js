@@ -2,6 +2,7 @@
 const balanceElement = document.getElementById('balance');
 const countdownElement = document.getElementById('countdown');
 const dailyAmountElement = document.getElementById('daily-amount');
+const dateElement = document.getElementById('current-date');
 const UIElements = {
     deposit: { display: document.getElementById('deposit-display'), button: document.getElementById('edit-deposit-button') },
     carryover: { display: document.getElementById('carryover-display'), button: document.getElementById('edit-carryover-button') },
@@ -127,6 +128,15 @@ function updateCountdown() {
     }
 }
 
+function updateDateDisplay() {
+    const today = new Date();
+    const month = today.getMonth() + 1;
+    const date = today.getDate();
+    const day = ['日', '月', '火', '水', '木', '金', '土'][today.getDay()];
+    dateElement.textContent = `${month}月${date}日（${day}）`;
+    dateElement.classList.add('date');
+}
+
 // --- iOS Install Prompt ---
 function showIosInstallBanner() {
     const isIos = () => /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -160,6 +170,7 @@ function initialize() {
     updateAllDisplays();
     updateBalanceDisplay();
     updateCountdown();
+    updateDateDisplay();
     showIosInstallBanner(); // Show banner for iOS users
 }
 
