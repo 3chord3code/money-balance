@@ -5,6 +5,7 @@ const dailyAmountElement = document.getElementById('daily-amount');
 const dateElement = document.getElementById('current-date');
 const UIElements = {
     deposit: { display: document.getElementById('deposit-display'), button: document.getElementById('edit-deposit-button') },
+    extra: { display: document.getElementById('extra-deposit-display'), button: document.getElementById('edit-extra-deposit-button') },
     carryover: { display: document.getElementById('carryover-display'), button: document.getElementById('edit-carryover-button') },
     spent: { display: document.getElementById('spent-display'), button: document.getElementById('edit-spent-button') },
     rent: { display: document.getElementById('rent-display'), button: document.getElementById('edit-rent-button') },
@@ -15,6 +16,7 @@ const UIElements = {
 const STORAGE_PREFIX = 'moneyBalanceApp_';
 const STORAGE_KEYS = {
     deposit: `${STORAGE_PREFIX}deposit_v2`,
+    extra: `${STORAGE_PREFIX}extra_v2`,
     carryover: `${STORAGE_PREFIX}carryover_v2`,
     spent: `${STORAGE_PREFIX}spent_v2`,
     rent: `${STORAGE_PREFIX}rent_v2`,
@@ -26,6 +28,7 @@ const formatter = new Intl.NumberFormat('ja-JP');
 // --- State ---
 let state = {
     deposit: null,
+    extra: 0,
     carryover: 0,
     spent: 0,
     rent: null,
@@ -34,8 +37,8 @@ let state = {
 
 // --- Functions ---
 function calculateBalance() {
-    const { deposit, carryover, spent, rent, credit } = state;
-    const income = (carryover || 0) + (deposit || 0);
+    const { deposit, extra, carryover, spent, rent, credit } = state;
+    const income = (carryover || 0) + (deposit || 0) + (extra || 0);
     const outcome = (spent || 0) + (rent || 0) + (credit || 0);
     return income - outcome;
 }
@@ -159,6 +162,7 @@ function showIosInstallBanner() {
 
 // --- Event Listeners ---
 UIElements.deposit.button.addEventListener('click', createEditHandler('deposit', '1ヵ月ごとの入金額を入力してください。'));
+UIElements.extra.button.addEventListener('click', createEditHandler('extra', '臨時収入の金額を入力してください。'));
 UIElements.carryover.button.addEventListener('click', createEditHandler('carryover', '前月からの繰り越し金額を入力してください。'));
 UIElements.spent.button.addEventListener('click', createEditHandler('spent', '使った金額の合計を入力してください。'));
 UIElements.rent.button.addEventListener('click', createEditHandler('rent', '家賃を入力してください。（空欄で未設定）'));
